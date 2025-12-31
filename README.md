@@ -1,186 +1,168 @@
 # SmartCover Live Dashboard
 
-A read-only, local dashboard built to explore and validate SmartCover API capabilities. This project demonstrates successful ingestion and visualization of SmartCover data, including near real-time sensor readings, historical trends, alarms, and alerts.
+A read-only, containerized dashboard for validating and visualizing SmartCover API data. This project uses **Docker** to provide a one-command setup that fetches, renders, and refreshes SmartCover telemetry locally.
 
-The dashboard is intended for **API validation, exploration, and demonstration purposes**. It does not modify or write back to SmartCover systems.
-
----
-
-## Overview
-
-This application consumes SmartCover's public API endpoints and renders the data into a structured dashboard with the following goals:
-
-- Validate API availability and stability
-- Understand the structure and freshness of live telemetry
-- Visualize historical sensor trends
-- Inspect alarms and alerts in a human-readable format
-- Provide a foundation for future product or demo work
+The dashboard is intended for **API testing, validation, and demonstration**. It does not write back to SmartCover systems.
 
 ---
 
-## Features
+## What This Project Does
 
-### Locations Overview
+This repository demonstrates that the SmartCover API can be:
 
-Lists all available locations returned by the API and displays metadata such as:
+- Successfully accessed and parsed
+- Used to retrieve near real-time sensor readings
+- Queried for historical telemetry
+- Queried for alarms and alerts
+- Rendered into a usable dashboard without any proprietary tooling
 
+All screenshots in this repository are generated from live API responses.
+
+---
+
+## Key Features
+
+### Locations
+Lists all locations returned by the SmartCover API and displays:
 - Location ID
 - Description
 - Application type
 - Alarm and alert state
 - Latitude and longitude
 
-### Live Data
-
-Displays the **latest reported sensor readings** for a selected location. Supports commonly available data types such as:
-
+### Live Data (Near Real-Time)
+Shows latest reported sensor values for a selected location. Common metrics include:
 - PowerPack Voltage
 - Water Level / Distance
 - Temperature
 - Signal Strength
 - Signal Quality
 
-Shows the timestamp of the last reported value and auto-refreshes at a fixed interval to reflect near real-time updates.
+Displays the timestamp of the last reading and auto-refreshes at a fixed interval (poll-based).
 
 ### Historical Trends
-
-Allows selection of location, data type, and date range. Renders time-series plots for historical sensor data and supports CSV export for offline analysis.
+- Select location, data type, and date range
+- Renders time-series plots
+- Allows CSV export for offline analysis
 
 ### Alarms
-
-Displays historical and recent alarm events with details such as:
-
+Displays historical alarm events with details including:
 - Alarm type
 - Duration
-- Start and end times
 - Depth thresholds
+- Start and end timestamps
 - Acknowledgement state
 
 ### Alerts
+Displays alert events such as:
+- Low Battery
+- Delayed Communication
+- Suspect Sensor
 
-Displays alert-level events such as low battery, delayed communication, and suspect sensor. Supports filtering for active alerts only.
+Supports filtering for active alerts only.
 
 ---
 
 ## Data Source
 
-All data is fetched from the SmartCover API.
+All data is retrieved from SmartCover's API endpoints.
 
-Example endpoint used:
-
+Example:
 ```
 https://www.mysmartcover.com/api/locations/list.php
 ```
 
-Key characteristics of the API based on testing:
-
-- Returns structured JSON responses
-- Includes latest sensor readings per location
-- Supports historical data access
-- Provides alarm and alert metadata
-- Data is near real-time, not true streaming (poll-based updates)
+Important notes based on testing:
+- API responses are JSON
+- Live data is **poll-based**, not streaming
+- Not all locations report the same telemetry
+- Timestamps vary by sensor and device type
 
 ---
 
 ## Architecture
 
-- **Frontend:** Streamlit
+- **Runtime:** Docker container
+- **UI Framework:** Streamlit
 - **Data Access:** Direct REST API calls
 - **Mode:** Read-only
-- **Deployment:** Local execution
+- **Persistence:** None (stateless)
 
-There is **no backend database or caching layer**. The dashboard reflects the API responses as-is.
+There is **no database**, **no background worker**, and **no data modification**.
 
 ---
 
-## Installation
+## Requirements
 
-### Prerequisites
+- Docker
+- Docker Compose (recommended)
 
-- Python 3.9+
-- pip or virtualenv
+No local Python installation is required.
 
-### Setup
+---
+
+## Running the Dashboard (Docker)
 
 Clone the repository:
-
 ```bash
 git clone <repo-url>
 cd smartcover-live-dashboard
 ```
 
-Create and activate a virtual environment:
-
+Build and start the container:
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+docker compose up --build
 ```
 
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
----
-
-## Running the App
-
-Start the Streamlit application:
-
-```bash
-streamlit run app.py
-```
-
-The dashboard will be available at:
-
+Once running, access the dashboard at:
 ```
 http://localhost:8501
+```
+
+To stop the dashboard:
+```bash
+docker compose down
 ```
 
 ---
 
 ## Configuration
 
-- API base URLs and refresh intervals are configurable in the code
-- The application is intentionally kept simple and transparent for inspection and iteration
+- API endpoints and refresh intervals are defined in the application code
+- The dashboard refreshes live data at a fixed polling interval
+- No credentials are stored or required for the tested endpoints
 
 ---
 
 ## Limitations
 
-- This is not a real-time streaming system; data updates rely on periodic polling
-- Data availability depends entirely on what each location reports
-- No authentication, write-back, or control functionality is included
-- UI is designed for clarity and validation, not production deployment
+- This is **not a real-time streaming system**
+- Data freshness depends entirely on device reporting frequency
+- Some telemetry types may not exist for certain locations
+- This is not production-hardened (no auth, rate limiting, or caching)
 
 ---
 
 ## Intended Use
 
-- API validation and exploration
-- Internal demos and walkthroughs
-- Understanding SmartCover data semantics
+- API validation
+- Technical due diligence
+- Internal demos
+- Data exploration
 - Foundation for future analytics or operational tooling
 
 ---
 
-## License
+## Status
+
+- API tested and verified
+- Live data confirmed for multiple locations
+- Historical data retrieval confirmed
+- Alarms and alerts successfully parsed
+- Dashboard fully operational via Docker
+
+---
+
+## License / Usage
 
 This project is provided for internal evaluation and demonstration purposes. Usage is subject to SmartCover API terms and conditions.
-
----
-
-## Next Possible Extensions
-
-- Per-metric live tiles for critical telemetry
-- Aggregated views across multiple locations
-- Alert prioritization and severity scoring
-- Export-ready reports for operations teams
-- Integration with downstream analytics pipelines
-
----
-
-## Contributing
-
-Contributions and feedback are welcome. Please open an issue or submit a pull request for any improvements or suggestions.
