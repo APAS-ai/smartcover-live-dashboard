@@ -10,4 +10,6 @@ services:
     ports:
       - "8501:8501"   # Streamlit Dashboard
       - "8080:8080"   # FastAPI Proxy API
+    volumes:
+      - ./logs:/app/logs   # Persist API logs
     restart: unless-stopped
