@@ -8,7 +8,8 @@ from api.smartcover import get_locations, get_historical_data
 def render():
     st.header("Historical Trends")
 
-    locations = get_locations()
+    response = get_locations()
+    locations = response.get("locations", [])
     if not locations:
         st.info("No locations available.")
         st.stop()
@@ -57,13 +58,14 @@ def render():
         st.stop()
 
     with st.spinner("Fetching historical data..."):
-        series = get_historical_data(
+        response = get_historical_data(
             location_id=location["id"],
             data_type=data_type_id,
             start_time=datetime.combine(start, datetime.min.time()),
             end_time=datetime.combine(end, datetime.min.time()),
         )
 
+    series = response.get("data", [])
     if not series or not series[0]:
         st.info("No historical data available.")
         return

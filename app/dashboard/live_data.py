@@ -10,7 +10,8 @@ def render(refresh_interval: int):
     # -----------------------------
     # Load locations
     # -----------------------------
-    locations = get_locations()
+    response = get_locations()
+    locations = response.get("locations", [])
     if not locations:
         st.info("No locations available.")
         st.stop()

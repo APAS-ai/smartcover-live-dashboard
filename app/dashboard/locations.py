@@ -7,8 +7,9 @@ def render():
     st.header("Locations Overview")
 
     with st.spinner("Loading locations..."):
-        locations = get_locations()
+        response = get_locations()
 
+    locations = response.get("locations", [])
     if not locations:
         st.info("No locations found.")
         return

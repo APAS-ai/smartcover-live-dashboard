@@ -1,6 +1,14 @@
+# Streamlit Dashboard
 streamlit==1.31.1
 streamlit-autorefresh==1.0.1
 
+# FastAPI Service
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+python-jose[cryptography]==3.3.0
+
+# Shared
 requests==2.31.0
 pandas==2.1.4
 plotly==5.18.0
+pydantic==2.6.1

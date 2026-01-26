@@ -12,8 +12,9 @@ def render():
         key="alarms_active_only"
     )
     with st.spinner("Loading alarms..."):
-        alarms = get_alarms(active_only=active_only)
+        response = get_alarms(active=1 if active_only else 0)
 
+    alarms = response.get("data", [])
     if not alarms:
         st.info("No alarms found.")
         return

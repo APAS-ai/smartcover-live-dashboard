@@ -13,8 +13,9 @@ def render():
     )
 
     with st.spinner("Loading alerts..."):
-        alerts = get_alerts(active_only=active_only)
+        response = get_alerts(active=1 if active_only else 0)
 
+    alerts = response.get("data", [])
     if not alerts:
         st.info("No alerts found.")
         return
