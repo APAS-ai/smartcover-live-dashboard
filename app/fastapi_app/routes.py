@@ -12,10 +12,23 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from .auth import get_current_user, verify_credentials, create_access_token, get_token_info
+from .auth import (
+    get_current_user,
+    verify_credentials,
+    create_access_token,
+    get_token_info,
+    get_user_tokens,
+    get_user_token_status,
+)
 
 security = HTTPBearer()
-from .schemas import TokenRequest, TokenResponse, TokenInfoResponse
+from .schemas import (
+    TokenRequest,
+    TokenResponse,
+    TokenInfoResponse,
+    TokenStatusResponse,
+    UserTokensResponse,
+)
 
 # Import SmartCover API functions (READ-ONLY operations only)
 import sys
@@ -41,6 +54,8 @@ async def login(request: TokenRequest):
     """
     Authenticate and receive a JWT access token for this proxy API.
 
+    Each token is assigned a unique name (API_1, API_2, API_3, etc.) for tracking.
+
     Use this token in the Authorization header as: `Bearer <token>`
 
     Note: This is YOUR proxy API token, not the SmartCover token.
@@ -51,10 +66,11 @@ async def login(request: TokenRequest):
             detail="Invalid username or password",
         )
 
-    access_token, expires_in = create_access_token(request.username)
+    access_token, expires_in, api_name = create_access_token(request.username)
     return TokenResponse(
         access_token=access_token,
         expires_in=expires_in,
+        api_name=api_name,
     )
 
 
@@ -66,9 +82,40 @@ async def token_info(
     """
     Get information about your current token including expiry time.
 
-    Returns token validity, issue time, expiry time, and human-readable time remaining.
+    Returns token validity, API name, issue time, expiry time, and human-readable time remaining.
     """
     return get_token_info(credentials.credentials)
+
+
+@router.get("/auth/token-status", response_model=TokenStatusResponse, tags=["Authentication"])
+async def token_status(
+    current_user: Annotated[str, Depends(get_current_user)],
+):
+    """
+    Check how many tokens you have remaining.
+
+    Returns your active token count, token limit, and remaining slots.
+    """
+    return get_user_token_status(current_user)
+
+
+@router.get("/auth/my-tokens", response_model=UserTokensResponse, tags=["Authentication"])
+async def my_tokens(
+    current_user: Annotated[str, Depends(get_current_user)],
+):
+    """
+    List all your active API tokens.
+
+    Returns all your active tokens with their API names (API_1, API_2, etc.),
+    creation time, and expiry information.
+
+    Useful if you've forgotten which tokens you have active.
+    """
+    tokens = get_user_tokens(current_user)
+    return UserTokensResponse(
+        username=current_user,
+        tokens=tokens,
+    )
 
 
 # -------------------------

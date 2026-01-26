@@ -105,14 +105,16 @@ class LoggingMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         start_time = time.time()
 
-        # Extract username from JWT token if present
+        # Extract username and api_name from JWT token if present
         username = "anonymous"
+        api_name = None
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):
             token = auth_header[7:]
             try:
                 payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
                 username = payload.get("sub", "unknown")
+                api_name = payload.get("api_name")
             except Exception:
                 username = "invalid_token"
 
@@ -144,9 +146,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         # Get client IP
         client_ip = request.client.host if request.client else "unknown"
 
-        # Console/text log
+        # Console/text log (include api_name if available)
+        api_info = f" | api={api_name}" if api_name else ""
         logger.info(
-            f"user={username} | ip={client_ip} | {request.method} {request.url.path} | "
+            f"user={username}{api_info} | ip={client_ip} | {request.method} {request.url.path} | "
             f"status={response.status_code} | {duration_ms:.1f}ms"
         )
 
@@ -154,6 +157,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         log_entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "user": username,
+            "api_name": api_name,
             "ip": client_ip,
             "method": request.method,
             "path": request.url.path,

@@ -193,11 +193,86 @@ curl "http://localhost:8080/api/v1/locations/alerts/list?active=1" \
 
 All endpoints support the same query parameters as the official SmartCover API (timezone, date_format, etc.). See the interactive docs for full parameter details.
 
+### Multi-User Configuration
+
+You can configure multiple users with individual token limits using the `API_USERS_JSON` environment variable:
+
+```bash
+# In .env file
+API_USERS_JSON={"admin":{"password":"admin","token_limit":0,"enabled":true},"client1":{"password":"client1pass","token_limit":3,"enabled":true}}
+```
+
+Each user has:
+- `password` - Login password
+- `token_limit` - Max active tokens (0 = unlimited)
+- `enabled` - Set to `false` to disable user without deleting
+
+**Check token expiry:**
+```bash
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/auth/token-info
+```
+
 ### Interactive Documentation
 
 Once running, access the auto-generated API docs:
 - **Swagger UI:** http://localhost:8080/docs (try endpoints interactively)
 - **ReDoc:** http://localhost:8080/redoc (detailed documentation)
+
+---
+
+## Logs
+
+API requests are logged with timestamps, user identity, and full request details.
+
+### View Live Docker Logs
+```bash
+# Follow logs in real-time
+docker compose logs -f
+
+# Last 100 lines
+docker compose logs --tail 100
+
+# Only FastAPI logs (filter by service)
+docker compose logs -f dashboard
+```
+
+### Persistent Log Files
+
+Logs persist in the `./logs/` folder (survives container restarts):
+
+```bash
+# Text logs (simple format)
+tail -f ~/smartcover-live-dashboard/logs/api_access.log
+
+# JSON logs with full request details
+cat ~/smartcover-live-dashboard/logs/api_requests.json | python3 -m json.tool
+
+# Last 50 entries
+tail -100 ~/smartcover-live-dashboard/logs/api_requests.json
+```
+
+**Text log format:**
+```
+2026-01-26 10:30:45 | INFO | user=pedram | ip=192.168.1.100 | GET /api/v1/locations/list | status=200 | 125.3ms
+```
+
+**JSON log format:**
+```json
+{
+  "timestamp": "2026-01-26T10:30:45.123456+00:00",
+  "user": "pedram",
+  "ip": "192.168.1.100",
+  "method": "GET",
+  "path": "/api/v1/locations/list",
+  "query_params": {"organization": "123"},
+  "request_body": null,
+  "status_code": 200,
+  "duration_ms": 125.32,
+  "user_agent": "curl/7.68.0"
+}
+```
+
+Logs rotate automatically (5 files × 10MB max = ~50MB total).
 
 ---
 
